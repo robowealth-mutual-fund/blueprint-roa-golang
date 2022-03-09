@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"github.com/robowealth-mutual-fund/blueprint-roa-golang/internals/config"
 	"github.com/robowealth-mutual-fund/blueprint-roa-golang/internals/controller"
-	controller_process_tracing "github.com/robowealth-mutual-fund/blueprint-roa-golang/internals/controller/product"
+	controllerProduct "github.com/robowealth-mutual-fund/blueprint-roa-golang/internals/controller/product"
 	"github.com/robowealth-mutual-fund/blueprint-roa-golang/internals/infrastructure/database"
-	grpcserver "github.com/robowealth-mutual-fund/blueprint-roa-golang/internals/infrastructure/grpc_server"
+	grpcServer "github.com/robowealth-mutual-fund/blueprint-roa-golang/internals/infrastructure/grpc_server"
 	"github.com/robowealth-mutual-fund/blueprint-roa-golang/internals/infrastructure/jaeger"
 	"github.com/robowealth-mutual-fund/blueprint-roa-golang/internals/infrastructure/logrus"
 	"github.com/robowealth-mutual-fund/blueprint-roa-golang/internals/repository/postgres"
-	service_process_tracing "github.com/robowealth-mutual-fund/blueprint-roa-golang/internals/service/product"
+	serviceProduct "github.com/robowealth-mutual-fund/blueprint-roa-golang/internals/service/product"
+	"github.com/robowealth-mutual-fund/blueprint-roa-golang/internals/service/product/wrapper"
 	"github.com/robowealth-mutual-fund/blueprint-roa-golang/internals/utils"
 	"go.uber.org/dig"
 )
@@ -19,27 +20,20 @@ type Container struct {
 	container *dig.Container
 }
 
-func BindTracingRepository(pgRep *postgres.Repository) utils.Repository {
-	return pgRep
-}
-
-func BindTracingService(service *service_process_tracing.ProcessTracingService) service_process_tracing.Service {
-	return service
-}
-
 func (c *Container) Configure() error {
+	if err := c.container.Provide(wrapper.WrapProduct, dig.Name("wrapperProduct")); err != nil {
+		return err
+	}
 	servicesConstructors := []interface{}{
 		config.NewConfiguration,
-		BindTracingRepository,
-		BindTracingService,
-		grpcserver.NewServer,
+		grpcServer.NewServer,
 		database.NewServerBase,
 		jaeger.NewJaeger,
 		logrus.NewLog,
 		controller.NewHealthZController,
 		controller.NewPingPongController,
-		controller_process_tracing.NewController,
-		service_process_tracing.NewService,
+		controllerProduct.NewController,
+		serviceProduct.NewService,
 		postgres.NewRepository,
 		utils.NewUtils,
 		utils.NewCustomValidator,
@@ -50,15 +44,15 @@ func (c *Container) Configure() error {
 			return err
 		}
 	}
-	//appConfig := config.NewConfiguration()
-	//jaeger.NewJaeger(appConfig)
+	appConfig := config.NewConfiguration()
+	jaeger.NewJaeger(appConfig)
 	return nil
 }
 
 func (c *Container) Start() error {
 	fmt.Println("Start Container")
 
-	if err := c.container.Invoke(func(s *grpcserver.Server) {
+	if err := c.container.Invoke(func(s *grpcServer.Server) {
 		s.Start()
 	}); err != nil {
 		fmt.Printf("%s", err)

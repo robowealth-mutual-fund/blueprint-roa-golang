@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -22,6 +23,10 @@ type DB struct {
 	Connection *gorm.DB
 	sql        *sql.DB
 	env        config.Configuration
+}
+
+func (db *DB) IsErrorRecordNotFound(err error) bool {
+	return errors.Is(err, gorm.ErrRecordNotFound)
 }
 
 // Close Connection DB

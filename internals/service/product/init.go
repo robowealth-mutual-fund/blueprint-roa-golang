@@ -1,15 +1,15 @@
-package product
+package wrapper
 
 import (
-	"github.com/robowealth-mutual-fund/blueprint-roa-golang/internals/utils"
+	"github.com/robowealth-mutual-fund/blueprint-roa-golang/internals/repository/postgres"
 )
 
-type ProcessTracingService struct {
-	repository utils.Repository
+type ProductService struct {
+	repository postgres.Repository
 }
 
-func NewService(r utils.Repository) (service *ProcessTracingService) {
-	return &ProcessTracingService{
+func NewService(r postgres.Repository) (service Service) {
+	return &ProductService{
 		repository: r,
 	}
 }

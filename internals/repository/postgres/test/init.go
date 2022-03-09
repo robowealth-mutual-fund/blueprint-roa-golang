@@ -21,7 +21,7 @@ type Filter struct {
 type PackageTestSuite struct {
 	suite.Suite
 	ctx     context.Context
-	repo    *postgres.Repository
+	repo    *postgres.PostgresRepository
 	verbose *entity.Product
 }
 
@@ -38,19 +38,9 @@ func (suite *PackageTestSuite) SetupTest() {
 	suite.repo = postgres.NewRepository(connetBase)
 }
 
-func (suite *PackageTestSuite) makeTestStruct(platformID string, accountID string, processName string, level string,
-	state string) (test *entity.Product) {
+func (suite *PackageTestSuite) makeTestStruct(name string, detail string) (test *entity.Product) {
 	return &entity.Product{
-		PlatformID:  platformID,
-		AccountID:   accountID,
-		ProcessName: processName,
-		Level:       level,
-		State:       state,
-	}
-}
-
-func (suite *PackageTestSuite) makeTestFilter(platformID string) (test *Filter) {
-	return &Filter{
-		PlatformID: platformID,
+		Name:   name,
+		Detail: detail,
 	}
 }

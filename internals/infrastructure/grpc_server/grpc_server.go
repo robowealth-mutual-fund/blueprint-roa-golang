@@ -2,6 +2,7 @@ package grpcserver
 
 import (
 	"fmt"
+	controllerProduct "github.com/robowealth-mutual-fund/blueprint-roa-golang/internals/controller/product"
 	"net"
 	"os"
 	"os/signal"
@@ -10,11 +11,7 @@ import (
 
 	"github.com/robowealth-mutual-fund/blueprint-roa-golang/internals/config"
 	"github.com/robowealth-mutual-fund/blueprint-roa-golang/internals/controller"
-	controller_process_tracing "github.com/robowealth-mutual-fund/blueprint-roa-golang/internals/controller/product"
-
-	// "git.robodev.co/imp/shared-utility/grpc_errors"
-	// "git.robodev.co/imp/shared-utility/validator"
-	api_v1 "github.com/robowealth-mutual-fund/blueprint-roa-golang/pkg/api/v1"
+	apiV1Grpc "github.com/robowealth-mutual-fund/blueprint-roa-golang/pkg/api/v1"
 	grpc_health_v1 "github.com/robowealth-mutual-fund/blueprint-roa-golang/pkg/grpc/health/v1"
 
 	"google.golang.org/grpc"
@@ -22,18 +19,18 @@ import (
 
 // Server ...
 type Server struct {
-	Config                   config.Configuration
-	Server                   *grpc.Server
-	HealthCtrl               *controller.HealthZController
-	PingPongCtrl             *controller.PingPongController
-	ProcessTracingController *controller_process_tracing.Controller
+	Config       config.Configuration
+	Server       *grpc.Server
+	HealthCtrl   *controller.HealthZController
+	PingPongCtrl *controller.PingPongController
+	ProductCtrl  *controllerProduct.Controller
 }
 
 // Configure ...
 func (s *Server) Configure() {
 	grpc_health_v1.RegisterHealthServer(s.Server, s.HealthCtrl)
-	api_v1.RegisterPingPongServiceServer(s.Server, s.PingPongCtrl)
-	api_v1.RegisterProductServiceServer(s.Server, s.ProcessTracingController)
+	apiV1Grpc.RegisterPingPongServiceServer(s.Server, s.PingPongCtrl)
+	apiV1Grpc.RegisterProductServiceServer(s.Server, s.ProductCtrl)
 }
 
 // Start ...
@@ -73,7 +70,7 @@ func NewServer(
 	config config.Configuration,
 	healthCtrl *controller.HealthZController,
 	pingPongCtrl *controller.PingPongController,
-	processTracingController *controller_process_tracing.Controller,
+	productCtrl *controllerProduct.Controller,
 // v *validator.CustomValidator,
 ) *Server {
 	option := grpc.ChainUnaryInterceptor(
@@ -82,11 +79,11 @@ func NewServer(
 	)
 
 	s := &Server{
-		Server:                   grpc.NewServer(option, grpc.MaxRecvMsgSize(10*10e6), grpc.MaxSendMsgSize(10*10e6)),
-		Config:                   config,
-		HealthCtrl:               healthCtrl,
-		PingPongCtrl:             pingPongCtrl,
-		ProcessTracingController: processTracingController,
+		Server:       grpc.NewServer(option, grpc.MaxRecvMsgSize(10*10e6), grpc.MaxSendMsgSize(10*10e6)),
+		Config:       config,
+		HealthCtrl:   healthCtrl,
+		PingPongCtrl: pingPongCtrl,
+		ProductCtrl:  productCtrl,
 	}
 
 	s.Configure()

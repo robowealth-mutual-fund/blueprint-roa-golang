@@ -2,9 +2,8 @@ syntax = "proto3";
 
 package api_v1;
 
-import "google/protobuf/empty.proto";
-
 option go_package = "/.;api_v1";
+
 
 message Product {
   string name = 1;
@@ -28,6 +27,11 @@ message CreateRequest {
   string price = 4;
 }
 
+message CreateResponse{
+  int32 id = 1;
+}
+
+
 service ProductService {
-  rpc Create(CreateRequest) returns (google.protobuf.Empty);
+  rpc Create(CreateRequest) returns (CreateResponse);
 }

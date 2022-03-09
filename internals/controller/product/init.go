@@ -1,12 +1,14 @@
 package product
 
-import service "github.com/robowealth-mutual-fund/blueprint-roa-golang/internals/service/product"
+import (
+	"github.com/robowealth-mutual-fund/blueprint-roa-golang/internals/service/product/wrapper"
+)
 
 type Controller struct {
-	service service.Service
+	service wrapper.Wrapper
 }
 
-func NewController(s service.Service) *Controller {
+func NewController(s wrapper.Wrapper) *Controller {
 	return &Controller{
 		service: s,
 	}
